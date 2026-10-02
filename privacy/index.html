@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fishing Calendar Privacy</title>
+<meta name="color-scheme" content="light dark">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #F6F8F4;
+    --surface: #FFFFFF;
+    --text: #16241C;
+    --text-secondary: #55665A;
+    --text-faint: #6F8275;
+    --accent: #2F7A55;
+    --accent-soft: #E4F0E7;
+    --border: #E3EAE0;
+    --shadow: rgba(20, 40, 28, 0.07);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1210;
+      --surface: #171D19;
+      --text: #F2F5F0;
+      --text-secondary: #9FB3A4;
+      --text-faint: #7F9185;
+      --accent: #6FCB94;
+      --accent-soft: #1B3327;
+      --border: #222922;
+      --shadow: rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1210;
+    --surface: #171D19;
+    --text: #F2F5F0;
+    --text-secondary: #9FB3A4;
+    --text-faint: #7F9185;
+    --accent: #6FCB94;
+    --accent-soft: #1B3327;
+    --border: #222922;
+    --shadow: rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding-inline: 20px;
+    padding-block: 0;
+    line-height: 1.6;
+  }
+
+  .topbar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-block: 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-mark svg { width: 16px; height: 16px; }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .lang-toggle button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .lang-toggle button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  h1 {
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 6vw, 38px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 36px 0 6px;
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    margin: 0 0 32px;
+  }
+
+  .intro {
+    font-size: 15.5px;
+    color: var(--text-secondary);
+    max-width: 62ch;
+    margin-bottom: 8px;
+  }
+
+  section {
+    margin-top: 34px;
+    padding-top: 26px;
+    border-top: 1px solid var(--border);
+  }
+  section:first-of-type { border-top: none; padding-top: 0; }
+
+  .section-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 21px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+
+  p { margin: 0 0 14px; max-width: 62ch; }
+  p:last-child { margin-bottom: 0; }
+
+  ul { margin: 0 0 14px; padding-left: 20px; max-width: 62ch; }
+  li { margin-bottom: 10px; }
+  li:last-child { margin-bottom: 0; }
+
+  .data-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .data-card h3 {
+    font-size: 14.5px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .data-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .not-list {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 480px) {
+    .not-list { grid-template-columns: 1fr; }
+  }
+  .not-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    min-width: 0;
+  }
+  .not-item svg { flex-shrink: 0; margin-top: 2px; width: 15px; height: 15px; color: var(--text-faint); }
+
+  .contact-box {
+    background: var(--accent-soft);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-top: 8px;
+  }
+  .contact-box p { color: var(--text-secondary); font-size: 14px; margin-bottom: 10px; }
+  .email-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .email-value {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text);
+    user-select: all;
+    overflow-wrap: anywhere;
+  }
+  .copy-btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--accent);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .copy-btn:active { transform: scale(0.97); }
+
+  footer {
+    margin-top: 44px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 12.5px;
+  }
+
+  [lang="en"] { display: none; }
+  [data-lang="en"] [lang="lv"] { display: none; }
+  [data-lang="en"] [lang="en"] { display: block; }
+  [data-lang="en"] [lang="en"].inline { display: inline; }
+</style>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm3 8H9V7a3 3 0 0 1 6 0Z"/></svg>
+      </span>
+      <span lang="lv">Makšķerēšanas kalendārs</span>
+      <span lang="en">Fishing Calendar</span>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang-btn="lv" aria-pressed="true">LV</button>
+      <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <main>
+    <h1 lang="lv">Privātuma politika</h1>
+    <h1 lang="en">Privacy Policy</h1>
+    <p class="subtitle">
+      <span lang="lv">Pēdējoreiz atjaunināts: 2026. gada 2. oktobrī</span>
+      <span lang="en">Last updated: October 2, 2026</span>
+    </p>
+
+    <p class="intro" lang="lv">
+      Šī politika apraksta, kādus datus lietotne "Makšķerēšanas kalendārs" apstrādā, kāpēc, un kur tie glabājas. Lietotne ir veidota vienam lietotājam — mums nav sava servera, un lielākā daļa tavu datu nekad neatstāj tavu ierīci.
+    </p>
+    <p class="intro" lang="en">
+      This policy explains what data the Fishing Calendar app handles, why, and where it's stored. The app is built for a single user — we don't run our own server, and most of your data never leaves your device.
+    </p>
+
+    <section>
+      <span class="section-label" lang="lv">§1</span>
+      <span class="section-label" lang="en">§1</span>
+      <h2 lang="lv">Kādus datus apstrādājam</h2>
+      <h2 lang="en">What data we handle</h2>
+
+      <div class="data-card">
+        <h3><span class="dot"></span><span lang="lv">Atrašanās vieta</span><span lang="en">Location</span></h3>
+        <p lang="lv">Izmantota tikai tad, kad pievieno copes sesijas atrašanās vietu vai izmanto "Izmantot pašreizējo atrašanās vietu" un kartes pogu. Koordinātas tiek nosūtītas laikapstākļu pakalpojumam Open-Meteo un vietas nosaukuma meklēšanai Apple Maps (skat. §3) — bez tava vārda, e-pasta vai cita identifikatora. Atrašanās vietu neglabājam ārpus tavas ierīces.</p>
+        <p lang="en">Used only when you add a location to a fishing trip, tap "Use current location" or the map location button. Coordinates are sent to the Open-Meteo weather service and to Apple Maps for place-name lookup (see §3) — without your name, email, or any other identifier. We don't store your location anywhere outside your device.</p>
+      </div>
+
+      <div class="data-card">
+        <h3><span class="dot"></span><span lang="lv">Konta dati</span><span lang="en">Account details</span></h3>
+        <p lang="lv">Vārds, e-pasts un parole (kā jaucējvērtība, ne teksts) tiek glabāti tikai tavā ierīcē. Tie nekad netiek sūtīti uz internetu — šis "konts" ir vietējs profils, nevis serverī reģistrēts lietotājs.</p>
+        <p lang="en">Your name, email, and password (stored as a hash, never as plain text) live only on your device. They're never sent over the internet — this "account" is a local profile, not a user registered on a server.</p>
+      </div>
+
+      <div class="data-card">
+        <h3><span class="dot"></span><span lang="lv">Copes dati un fotogrāfijas</span><span lang="en">Trip data and photos</span></h3>
+        <p lang="lv">Sesijas, lomi, sugas, ēsmas, ekipējums un pievienotās fotogrāfijas tiek glabāti tavā ierīcē. Ja tev ir ieslēgts iPhone iCloud dublējums, tie ir iekļauti tavā privātajā dublējumā — mēs tiem piekļuvi nekad nesaņemam.</p>
+        <p lang="en">Trips, catches, species, bait, gear, and any photos you add are stored on your device. If you have iPhone iCloud Backup turned on, they're part of your own private backup — we never get access to them.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="section-label" lang="lv">§2</span>
+      <span class="section-label" lang="en">§2</span>
+      <h2 lang="lv">Ko mēs nedarām</h2>
+      <h2 lang="en">What we don't do</h2>
+      <div class="not-list">
+        <div class="not-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <span lang="lv">Nerādām reklāmas un neizmantojam reklāmu izsekošanu.</span>
+          <span lang="en">We don't show ads or use advertising trackers.</span>
+        </div>
+        <div class="not-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <span lang="lv">Neizmantojam analītikas rīkus, kas sekotu tavai darbībai.</span>
+          <span lang="en">We don't use analytics tools that track your activity.</span>
+        </div>
+        <div class="not-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <span lang="lv">Nepārdodam tavus datus, un tos nesaņem neviens, izņemot §3 minētos pakalpojumus, kas strādā tavas lietotnes vārdā.</span>
+          <span lang="en">We don't sell your data, and nobody receives it except the services in §3 that work on the app's behalf.</span>
+        </div>
+        <div class="not-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <span lang="lv">Mums nav sava servera, kas glabātu tavus copes datus.</span>
+          <span lang="en">We don't run a server that stores your trip data.</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <span class="section-label" lang="lv">§3</span>
+      <span class="section-label" lang="en">§3</span>
+      <h2 lang="lv">Trešo pušu pakalpojumi</h2>
+      <h2 lang="en">Third-party services</h2>
+      <p lang="lv"><strong>Open-Meteo</strong> — bezmaksas laikapstākļu API, kas saņem tikai koordinātas un datumu, lai atgrieztu gaisa spiedienu, temperatūru un citus laikapstākļu datus. Tam netiek nosūtīta nekāda personas informācija.</p>
+      <p lang="en"><strong>Open-Meteo</strong> — a free weather API that receives only coordinates and a date, returning air pressure, temperature, and other weather data. No personal information is ever sent to it.</p>
+      <p lang="lv"><strong>Mapbox</strong> — kartes attēlošanai un vietu meklēšanai. Skatot karti, Mapbox saņem kartes fragmentu pieprasījumus (apgabals, ko skaties) un tavas ierīces IP adresi; meklējot vietu, tas saņem ierakstīto meklēšanas tekstu. Tas notiek bez tava vārda vai e-pasta. Mapbox apstrādā datus saskaņā ar savu privātuma politiku (mapbox.com/legal/privacy).</p>
+      <p lang="en"><strong>Mapbox</strong> — used to display the map and search for places. When you view the map, Mapbox receives map-tile requests (the area you're looking at) and your device's IP address; when you search, it receives the text you type. This happens without your name or email. Mapbox handles data under its own privacy policy (mapbox.com/legal/privacy).</p>
+      <p lang="lv"><strong>Apple Maps</strong> — kad izmanto pašreizējo atrašanās vietu vai ievadi koordinātas, Apple vietu pakalpojums pārvērš tās vietas nosaukumā (piemēram, "Rīga, Latvija"), saskaņā ar Apple privātuma politiku.</p>
+      <p lang="en"><strong>Apple Maps</strong> — when you use your current location or enter coordinates, Apple's place service turns them into a place name (for example "Riga, Latvia"), under Apple's own privacy policy.</p>
+      <p lang="lv"><strong>Apple iCloud</strong> — ja tev ir ieslēgts iPhone iCloud dublējums, aplikācijas dati tiek iekļauti tavā privātajā Apple dublējumā saskaņā ar Apple privātuma politiku.</p>
+      <p lang="en"><strong>Apple iCloud</strong> — if you have iPhone iCloud Backup turned on, the app's data is included in your own private Apple backup, governed by Apple's privacy policy.</p>
+    </section>
+
+    <section>
+      <span class="section-label" lang="lv">§4</span>
+      <span class="section-label" lang="en">§4</span>
+      <h2 lang="lv">Datu dzēšana</h2>
+      <h2 lang="en">Deleting your data</h2>
+      <ul>
+        <li lang="lv">Savu vietējo kontu (vārdu, e-pastu, paroli) vari izdzēst jebkurā brīdī: <em>Profils → Dzēst kontu</em>. Tavas sesijas un lomi ar to netiek ietekmēti.</li>
+        <li lang="en">You can delete your local account (name, email, password) at any time: <em>Profile → Delete account</em>. Your trips and catches aren't affected.</li>
+        <li lang="lv">Lai izdzēstu pilnīgi visus datus, atinstalē lietotni — dati glabājas tikai ierīcē (un tavā iCloud dublējumā, ja tas ir ieslēgts), mums nav kopiju.</li>
+        <li lang="en">To remove everything, uninstall the app — data lives only on your device (and your iCloud backup, if enabled); we hold no copies.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="section-label" lang="lv">§5</span>
+      <span class="section-label" lang="en">§5</span>
+      <h2 lang="lv">Bērnu privātums</h2>
+      <h2 lang="en">Children's privacy</h2>
+      <p lang="lv">Lietotne nav paredzēta bērniem līdz 13 gadu vecumam, un mēs apzināti nevācam datus no bērniem.</p>
+      <p lang="en">This app isn't directed at children under 13, and we don't knowingly collect data from children.</p>
+    </section>
+
+    <section>
+      <span class="section-label" lang="lv">§6</span>
+      <span class="section-label" lang="en">§6</span>
+      <h2 lang="lv">Izmaiņas šajā politikā</h2>
+      <h2 lang="en">Changes to this policy</h2>
+      <p lang="lv">Ja mainīsies tas, kā apstrādājam datus (piemēram, ieviešot sinhronizāciju starp ierīcēm), atjaunināsim šo lapu un mainīsim datumu augšpusē.</p>
+      <p lang="en">If how we handle data changes (for example, when syncing between devices is introduced), we'll update this page and the date at the top.</p>
+
+      <div class="contact-box">
+        <p lang="lv">Jautājumi par šo politiku:</p>
+        <p lang="en">Questions about this policy:</p>
+        <div class="email-row">
+          <span class="email-value" id="email-text">jurissinkevics@gmail.com</span>
+          <button class="copy-btn" type="button" id="copy-email">
+            <span lang="lv" class="inline">Kopēt</span><span lang="en" class="inline">Copy</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span lang="lv">Makšķerēšanas kalendārs — privātuma politika</span>
+      <span lang="en">Fishing Calendar — Privacy Policy</span>
+    </footer>
+  </main>
+</div>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+
+<script>
+  (function () {
+    var app = document.getElementById('app');
+    var buttons = document.querySelectorAll('[data-lang-btn]');
+
+    function setLang(lang) {
+      app.setAttribute('data-lang', lang);
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.langBtn === lang));
+      });
+      try { localStorage.setItem('fc-privacy-lang', lang); } catch (e) {}
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { setLang(b.dataset.langBtn); });
+    });
+
+    var saved = 'lv';
+    try { saved = localStorage.getItem('fc-privacy-lang') || 'lv'; } catch (e) {}
+    setLang(saved);
+
+    var copyBtn = document.getElementById('copy-email');
+    var emailEl = document.getElementById('email-text');
+    copyBtn.addEventListener('click', function () {
+      var label = copyBtn.innerHTML;
+      function done(ok) {
+        if (!ok) {
+          var range = document.createRange();
+          range.selectNodeContents(emailEl);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        copyBtn.textContent = ok ? '✓' : '↑';
+        setTimeout(function () { copyBtn.innerHTML = label; }, 1200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(emailEl.textContent).then(function () { done(true); }, function () { done(false); });
+      } else {
+        done(false);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

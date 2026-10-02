@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fishing Calendar Support</title>
+<meta name="color-scheme" content="light dark">
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: single narrow reading column, matching the app's privacy page — header bar with language toggle, contact card first, then plain question/answer blocks. */
+  :root {
+    --bg: #F6F8F4;
+    --surface: #FFFFFF;
+    --text: #16241C;
+    --text-secondary: #55665A;
+    --text-faint: #6F8275;
+    --accent: #2F7A55;
+    --accent-soft: #E4F0E7;
+    --border: #E3EAE0;
+    --shadow: rgba(20, 40, 28, 0.07);
+    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1210;
+      --surface: #171D19;
+      --text: #F2F5F0;
+      --text-secondary: #9FB3A4;
+      --text-faint: #7F9185;
+      --accent: #6FCB94;
+      --accent-soft: #1B3327;
+      --border: #222922;
+      --shadow: rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1210;
+    --surface: #171D19;
+    --text: #F2F5F0;
+    --text-secondary: #9FB3A4;
+    --text-faint: #7F9185;
+    --accent: #6FCB94;
+    --accent-soft: #1B3327;
+    --border: #222922;
+    --shadow: rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding-inline: 20px;
+    padding-block: 0;
+    line-height: 1.6;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-block: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 0;
+  }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .lang-toggle button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .lang-toggle button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 6vw, 38px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 36px 0 10px;
+    text-wrap: balance;
+  }
+  .intro {
+    color: var(--text-secondary);
+    font-size: 15.5px;
+    max-width: 62ch;
+    margin: 0 0 28px;
+  }
+
+  .contact {
+    background: var(--accent-soft);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 40px;
+  }
+  .contact p { margin: 0 0 10px; font-size: 14px; color: var(--text-secondary); }
+  .email-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .email-value {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    user-select: all;
+    overflow-wrap: anywhere;
+  }
+  .copy-btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--accent);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .reply { margin: 10px 0 0 !important; font-size: 13px !important; color: var(--text-faint) !important; }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  .faq { display: grid; gap: 28px; }
+  .qa { min-width: 0; padding-top: 22px; border-top: 1px solid var(--border); }
+  .qa:first-child { border-top: none; padding-top: 0; }
+  .qa p { margin: 8px 0 0; max-width: 62ch; color: var(--text-secondary); font-size: 15px; }
+  .path {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1px 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  footer {
+    margin-top: 44px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 12.5px;
+  }
+
+  [lang="en"] { display: none; }
+  [data-lang="en"] [lang="lv"] { display: none; }
+  [data-lang="en"] [lang="en"] { display: block; }
+  [data-lang="en"] [lang="en"].inline { display: inline; }
+  [lang="lv"].inline { display: inline; }
+  [data-lang="en"] .path[lang="en"], [data-lang="en"] span.path[lang="en"] { display: inline-block; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div id="app" data-lang="en">
+  <div class="topbar">
+    <div class="brand">
+      <span lang="lv">Makšķerēšanas kalendārs</span>
+      <span lang="en">Fishing Calendar</span>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang-btn="lv" aria-pressed="false">LV</button>
+      <button type="button" data-lang-btn="en" aria-pressed="true">EN</button>
+    </div>
+  </div>
+
+  <main>
+    <h1 lang="lv">Atbalsts</h1>
+    <h1 lang="en">Support</h1>
+    <p class="intro" lang="lv">Palīdzība ar Makšķerēšanas kalendāru iPhone ierīcēm. Zemāk atradīsi atbildes uz biežākajiem jautājumiem; ja neatradi vajadzīgo, uzraksti.</p>
+    <p class="intro" lang="en">Help with Fishing Calendar for iPhone. Answers to the most common questions are below; if yours isn't there, send a message.</p>
+
+    <div class="contact">
+      <p lang="lv">Raksti uz e-pastu un pieminē aplikācijas versiju (Iestatījumi → apakšā):</p>
+      <p lang="en">Email us and mention the app version (Settings, at the bottom):</p>
+      <div class="email-row">
+        <span class="email-value" id="email-text">jurissinkevics@gmail.com</span>
+        <button class="copy-btn" type="button" id="copy-email">
+          <span lang="lv" class="inline">Kopēt</span><span lang="en" class="inline">Copy</span>
+        </button>
+      </div>
+      <p class="reply" lang="lv">Atbildu parasti 1–3 darba dienu laikā.</p>
+      <p class="reply" lang="en">We usually reply within 1–3 working days.</p>
+    </div>
+
+    <div class="faq">
+      <div class="qa">
+        <h2 lang="lv">Kā eksportēt savus datus?</h2>
+        <h2 lang="en">How do I export my data?</h2>
+        <p lang="lv">Atver <span class="path inline">Iestatījumi → Dati</span> un izvēlies <strong>Eksportēt kā CSV</strong> (atver Excel vai Numbers) vai <strong>Eksportēt kā JSON</strong> (pilns dublējums). Eksportā ir visas sesijas un lomi, bez fotogrāfijām. Failu vari nosūtīt pa e-pastu vai saglabāt lietotnē Files.</p>
+        <p lang="en">Open <span class="path inline">Settings → Data</span> and choose <strong>Export as CSV</strong> (opens in Excel or Numbers) or <strong>Export as JSON</strong> (a full backup). The export contains all trips and catches, without photos. You can email the file or save it in the Files app.</p>
+      </div>
+
+      <div class="qa">
+        <h2 lang="lv">Kā nomainīt kilogramus un centimetrus uz mārciņām un collām?</h2>
+        <h2 lang="en">How do I switch between kg/cm and lb/in?</h2>
+        <p lang="lv">Atver <span class="path inline">Iestatījumi → Mērvienības</span> un izvēlies <strong>Metriskā (kg, cm)</strong> vai <strong>Imperiālā (lb, collas)</strong>. Jau saglabātie lomi tiek pārrēķināti automātiski, jo dati glabājas metriski.</p>
+        <p lang="en">Open <span class="path inline">Settings → Units</span> and pick <strong>Metric (kg, cm)</strong> or <strong>Imperial (lb, in)</strong>. Catches you already saved convert automatically, because values are stored in metric.</p>
+      </div>
+
+      <div class="qa">
+        <h2 lang="lv">Kā pārnest datus uz jaunu telefonu?</h2>
+        <h2 lang="en">How do I move my data to a new phone?</h2>
+        <p lang="lv">Dati glabājas tavā ierīcē, nevis mūsu serverī. Tie pārnesas kopā ar iPhone iCloud dublējumu vai Quick Start pārsūtīšanu, kad iestati jauno telefonu. Pirms nomaiņas vari arī izveidot papildu rezerves kopiju ar <strong>Eksportēt kā JSON</strong>.</p>
+        <p lang="en">Your data lives on your device, not on our servers. It moves with your iPhone iCloud Backup or Quick Start transfer when you set up the new phone. Before switching you can also make an extra copy with <strong>Export as JSON</strong>.</p>
+      </div>
+
+      <div class="qa">
+        <h2 lang="lv">Bloķēšanas ekrānā nav pogas "Loms".</h2>
+        <h2 lang="en">The Catch button doesn't show on my Lock Screen.</h2>
+        <p lang="lv">Poga parādās tikai tad, kad sesija notiek. Pārbaudi, vai iPhone iestatījumos ir ieslēgtas <strong>Live Activities</strong> (<span class="path inline">Iestatījumi → Fishing Calendar → Live Activities</span>) un vai sesija ir sākta ar "Sākt copi". Pēc nospiešanas loma laiks tiek pierakstīts uzreiz, un detaļas vari aizpildīt vēlāk aplikācijā.</p>
+        <p lang="en">The button only appears while a trip is running. Check that <strong>Live Activities</strong> are on in iPhone settings (<span class="path inline">Settings → Fishing Calendar → Live Activities</span>) and that the trip was started with "Start trip". Tapping it records the catch time right away, and you can fill in the details later in the app.</p>
+      </div>
+
+      <div class="qa">
+        <h2 lang="lv">Laikapstākļi vai atrašanās vieta nerādās.</h2>
+        <h2 lang="en">Weather or my location isn't showing.</h2>
+        <p lang="lv">Atļauj piekļuvi atrašanās vietai (<span class="path inline">Iestatījumi → Fishing Calendar → Atrašanās vieta → Lietojot lietotni</span>). Laikapstākļiem un kartei vajadzīgs interneta savienojums; bez tā jau saglabātie dati joprojām ir pieejami.</p>
+        <p lang="en">Allow location access (<span class="path inline">Settings → Fishing Calendar → Location → While Using the App</span>). Weather and the map need an internet connection; your saved trips and catches stay available offline.</p>
+      </div>
+
+      <div class="qa">
+        <h2 lang="lv">Kā dzēst savus datus?</h2>
+        <h2 lang="en">How do I delete my data?</h2>
+        <p lang="lv">Vietējo profilu (vārdu, e-pastu) vari dzēst sadaļā <span class="path inline">Profils → Dzēst kontu</span>; sesijas un lomi tiek saglabāti. Lai noņemtu pilnīgi visu, izdzēs aplikāciju no iPhone: neviens cits datus neglabā.</p>
+        <p lang="en">You can delete your local profile (name, email) under <span class="path inline">Profile → Delete account</span>; trips and catches are kept. To remove everything, delete the app from your iPhone. Nothing is stored anywhere else.</p>
+      </div>
+    </div>
+
+    <footer>
+      <span lang="lv">Makšķerēšanas kalendārs, atbalsts</span>
+      <span lang="en">Fishing Calendar Support</span>
+    </footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var app = document.getElementById('app');
+    var buttons = document.querySelectorAll('[data-lang-btn]');
+
+    function setLang(lang) {
+      app.setAttribute('data-lang', lang);
+      document.documentElement.setAttribute('lang', lang);
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.langBtn === lang));
+      });
+      try { localStorage.setItem('fc-support-lang', lang); } catch (e) {}
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { setLang(b.dataset.langBtn); });
+    });
+
+    var initial = (navigator.language || '').toLowerCase().indexOf('lv') === 0 ? 'lv' : 'en';
+    try { initial = localStorage.getItem('fc-support-lang') || initial; } catch (e) {}
+    setLang(initial);
+
+    var copyBtn = document.getElementById('copy-email');
+    var emailEl = document.getElementById('email-text');
+    copyBtn.addEventListener('click', function () {
+      var label = copyBtn.innerHTML;
+      function done(ok) {
+        if (!ok) {
+          var range = document.createRange();
+          range.selectNodeContents(emailEl);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        copyBtn.textContent = ok ? '✓' : '↑';
+        setTimeout(function () { copyBtn.innerHTML = label; }, 1200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(emailEl.textContent).then(function () { done(true); }, function () { done(false); });
+      } else {
+        done(false);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
