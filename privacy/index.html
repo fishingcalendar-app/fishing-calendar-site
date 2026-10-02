@@ -290,8 +290,8 @@
       <span lang="en">Fishing Calendar</span>
     </div>
     <div class="lang-toggle" role="group" aria-label="Language">
-      <button type="button" data-lang-btn="lv" aria-pressed="true">LV</button>
-      <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
+      <button type="button" data-lang-btn="lv" aria-pressed="false">LV</button>
+      <button type="button" data-lang-btn="en" aria-pressed="true">EN</button>
     </div>
   </div>
 
@@ -447,8 +447,8 @@
       b.addEventListener('click', function () { setLang(b.dataset.langBtn); });
     });
 
-    var saved = 'lv';
-    try { saved = localStorage.getItem('fc-privacy-lang') || 'lv'; } catch (e) {}
+    var saved = 'en';
+    try { saved = localStorage.getItem('fc-privacy-lang') || 'en'; } catch (e) {}
     setLang(saved);
 
     var copyBtn = document.getElementById('copy-email');
